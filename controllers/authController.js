@@ -154,7 +154,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   if (true) {
-    console.log(passwordChanged);
+    // console.log(passwordChanged);
   }
 
   //   iat means insured at.

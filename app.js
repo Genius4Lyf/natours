@@ -25,6 +25,9 @@ const hpp = require('hpp');
 // Defineing the cookie parser
 const cookieParser = require('cookie-parser');
 
+// Definining the compression package
+const compression = require('compression');
+
 // IMPORTING THE ERROR HANDLER APPERROR
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -149,6 +152,8 @@ app.use(
     ],
   }),
 );
+
+app.use(compression); //Compression all text sent to client
 
 // CREATING OUR OWN MIDDLEWARE
 // When making our own middleware, we have to call in the next function parameter otherwise the program will stop running and once a response is sent back, that is if a middleware is between a route, it and that route is called upon, the middleware will not get run because a response has ended the program
