@@ -50,7 +50,7 @@ mongoose
 // CREATING A NEW SERVER
 const port = process.env.PORT || 3000;
 // app.listen was converted to having stored on a variable so we can use in our unhandledRejection event listener
-const server = app.listen(port, '0.0.0.0', () => {
+const server = app.listen(port, () => {
   console.log(`App is listening on port ${port}`);
 });
 
