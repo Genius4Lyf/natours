@@ -13,7 +13,7 @@ const signToken = (id) => {
   });
 };
 
-const createSendToken = (user, res) => {
+const createSendToken = (user, res, req) => {
   const token = signToken(user._id);
 
   const cookieOptions = {
@@ -22,9 +22,8 @@ const createSendToken = (user, res) => {
     ),
     // secure: true, //the cookie will only be sent on an encrypted connection (https)
     httpOnly: true, //this will make it that the  cannot be modified in anyway or accessed by the browser
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https', //the cookie will only be sent on an encrypted connection (https)
   };
-
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true; //the cookie will only be sent on an encrypted connection (https)
 
   // Set user password to undefined so it doesn't get returned as a response. remove user from the output
   user.password = undefined;
@@ -48,7 +47,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   console.log(url);
   await new Email(newUser, url).sendWelcome();
 
-  const token = createSendToken(newUser._id, res);
+  const token = createSendToken(newUser._id, res, req);
 
   res.status(201).json({
     status: 'success',
@@ -79,7 +78,7 @@ exports.login = catchAsync(async (req, res, next) => {
   //   console.log(user)
 
   // 3. if everything okay, send token to client
-  const token = createSendToken(user._id, res);
+  const token = createSendToken(user._id, res, req);
   res.status(200).json({
     status: 'success',
     token, //
@@ -308,7 +307,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // This was done at the userModel.js file using a presave Middleware. Check the userModel.js file for clarity
 
   // 4. Log the user in, send JWT
-  const token = createSendToken(user._id, res);
+  const token = createSendToken(user._id, res, req);
 
   res.status(200).json({
     status: 'success',
@@ -340,7 +339,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     return;
   }
   // 4. Log user in, send JWT
-  const token = createSendToken(user._id, res);
+  const token = createSendToken(user._id, res, req);
 
   res.status(200).json({
     status: 'success',
