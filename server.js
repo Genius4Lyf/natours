@@ -67,6 +67,31 @@ process.on('unhandledRejection', (err) => {
   // code 1 = uncaught exception
 });
 
+process.on('SIGTERM', () => {
+  console.log('SIGTERM RECEIVED. Shutting down gracefully');
+  server.close(() => {
+    console.log('💥 Process terminated');
+  });
+});
+// process is a global object in Node.js that provides information about, and control over, the current Node.js process.
+// .on('SIGTERM', callback) is an event listener. It tells Node.js: "When the operating system sends a SIGTERM signal to this process, execute the provided callback function."
+// SIGTERM is a signal asking the process to terminate. It's a "polite" request, unlike SIGKILL which forces termination immediately. SIGTERM gives the application a chance to shut down gracefully.
+// console.log('SIGTERM RECEIVED. Shutting down gracefully');
+
+// This line simply logs a message to the console, indicating that the SIGTERM signal has been received and the application is beginning its shutdown procedure. This is helpful for debugging and monitoring.
+// server.close(() => { ... });
+
+// This is the core of the graceful shutdown. server (which was defined earlier in your server.js file as const server = app.listen(...)) refers to your HTTP server instance.
+// server.close() stops the server from accepting new incoming connections.
+// Crucially, it also waits for any existing, currently active connections to finish their ongoing requests before actually closing. This prevents abruptly cutting off users who are in the middle of something.
+
+// i.e
+// It acknowledges the signal.
+// It stops accepting new requests.
+// It allows any ongoing requests to complete.
+// It then cleanly shuts down the server.
+// Finally, it logs that the process has terminated.
+
 // STATUS CODE
 // 200 = OK
 // 201 = CREATED
