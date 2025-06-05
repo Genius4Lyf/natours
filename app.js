@@ -28,6 +28,9 @@ const cookieParser = require('cookie-parser');
 // Definining the compression package
 const compression = require('compression');
 
+// Defining the cors
+const cors = require('cors');
+
 // IMPORTING THE ERROR HANDLER APPERROR
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -42,6 +45,18 @@ const bookingRouter = require('./routes/bookingRoutes');
 // Defining the app variable for us to be able to use express
 const app = express();
 
+// HEROKU SETTINGS (MAYBE WOULD WORK FOR ANOTHER SERVER)
+app.enable('trust proxy'); //Enabling trust proxy tells Express to trust these X-Forwarded-* headers. When it's enabled, Express will look at X-Forwarded-For to determine req.ip and X-Forwarded-Proto to determine req.protocol, among other things.
+// This is crucial for:
+//Accurate Logging: You get the real client IP in your logs.
+// Rate Limiting: You can apply rate limits based on the actual client IP, not the proxy's IP (which would incorrectly limit all users coming through that proxy).
+// Security: Identifying the source of malicious requests.
+// Correct URL Generation: Ensuring req.protocol is correct when building URLs (e.g., for redirects or generating links).
+// Secure Cookies: Ensuring cookies marked secure: true are only sent over HTTPS, based on the original protocol.
+// By setting app.enable('trust proxy'), you're essentially saying, "I know I'm behind a proxy, and I trust it to provide the correct client information in the standard X-Forwarded-* headers."
+
+// There are more advanced ways to configure trust proxy (e.g., specifying a list of trusted IPs or the number of proxy hops) for better security, but app.enable('trust proxy') is the simplest way to enable this behavior.
+
 // PUG (TEMPLATE ENGINE)
 app.set('view engine', 'pug'); //no packages needs to be installed and we don't have to require the pug into the app.js folder
 app.set('views', path.join(__dirname, 'views')); //use for defining which folder our views template is located at
@@ -51,6 +66,19 @@ app.use(express.static(path.join(__dirname, 'public'))); //This line tells your 
 
 // GLOBAL MIDDLEWAREES
 // Middlewares are executed in the order they are in the code
+
+// CORS MIDDLEWARE
+// FOR SIMPLE REQUEST ONLY
+app.use(cors()); //which in turn will return a middleware function which is then gonna add a couple of different headers to our response.
+// app.use(cors()) is to set Access-control-Allow-Origin header set to origin. Setting cors like this will only work for simple request which is get and post request
+// what if we have our api at 'api.natours.com' and our frontend app at 'natours.com' and we want to set only our app to be able to access the api
+// we'd do =>
+// app.use(cors({
+//   origin: 'https://www.natours.com'
+// }))
+// For NON SIMPLE REQUEST
+// On the other hand, we have so-called non-simple requests. And these are put, patch and delete requests, or also requests that send cookies or use nonstandard headers. And these non-simple requests, they require a so-called preflight phase. So whenever there is a non-simple request, the browser will then automatically issue the preflight phase, and this is how that works. So before the real request actually happens, and let's say a delete request, the browser first does an options request in order to figure out if the actual request is safe to send. And so what that means for us developers is that on our server we need to actually respond to that options request. And options is really just another HTTP method, so just like get, post or delete, all right? So basically when we get one of these options requests on our server, we then need to send back the same Access-Control-Allow-Origin header. And this way the browser will then know that the actual request, and in this case the delete request, is safe to perform, and then executes the delete request itself, all right?
+app.options('*', cors()); // this is very similar to doing app.get for example, or .post, .delete, .patch, and all these verbs that you already know. So .options is not to set any options on our application, it's really just another HTTP method that we can respond to. And so again, in this case we need to respond to it because the browser sends an option request when there is a preflight phase. So we need to define the route for which we want to handle the options. And once again, we will do this on all the routes, okay? And then basically the handler, which once more is the CORS middleware, all right? And once more, we could of course only allow these complex requests on just a specific route. for example app.options('/api/v1/tours/:id', cors())
 
 // HELMET MIDDLEWARE
 // Set Security HTTP headers
